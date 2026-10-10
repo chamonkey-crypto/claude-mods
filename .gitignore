@@ -1,0 +1,3 @@
+node_modules/
+.claude-plugin/types/
+usage-band/.claude-plugin/types/
