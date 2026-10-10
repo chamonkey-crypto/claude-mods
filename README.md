@@ -14,6 +14,18 @@
 
 快取倒數是推算的：Claude Code 沒有直接給 mod 快取的到期時間，所以用「最後一次有讀寫快取的回應時間」加上存活時間來估。一輪進行中顯示「快取 ⋯」，結束後才重新倒數。存活時間預設 1 小時；用 API 金鑰的話，到 `/config` 把「快取存活時間」改成 5 分鐘。額度欄只有 Pro、Max 訂閱才有，沒有的話顯示「—」。
 
+## handoff（交接鈕）
+
+context 用到 70% 時，沙漏的 context 旁邊會冒出「交接」按鈕（也可以按 `h`）。按下去會跑該專案的交接流程，依序找：
+
+1. 有沒有 `/handoff` 或 `/交接` 之類的指令（專案、外掛或 skill 都算），有就直接執行。
+2. 專案資料夾有沒有交接文件（`HANDOFF.md`、`handoff.md`、`交接.md`，或放在 `docs/`、`.claude/` 底下），有就請 Claude 照文件做。
+3. 都沒有，就請 Claude 照 `CLAUDE.md` 或專案慣例整理進度、決策、待辦和下一步；專案沒定義的話會先回報，不亂建。
+
+出現門檻預設 70%，可在 `/config` 改成 60 或 80。
+
+要搭配沙漏用：交接鈕是接在沙漏那條橫幅上。兩個都裝的話，**先裝沙漏、再裝交接鈕**；如果按鈕沒出現，把交接鈕解除安裝再重裝一次。
+
 ## 安裝（每台電腦一次）
 
 GitHub 上是私人 repository，命令列的 git 權限讀不到，所以用 Fork 把 repository 抓到本機，再讓 Claude Code 讀那個資料夾。
@@ -24,6 +36,7 @@ GitHub 上是私人 repository，命令列的 git 權限讀不到，所以用 Fo
 ```bash
 claude plugin marketplace add "D:/@Development/claude-mods"
 claude plugin install hourglass@claude-mods --scope user
+claude plugin install handoff@claude-mods --scope user
 ```
 
 之前裝過 usage-band 的，換成沙漏要多一步：

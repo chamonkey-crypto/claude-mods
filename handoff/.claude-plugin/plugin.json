@@ -1,0 +1,15 @@
+{
+  "name": "handoff",
+  "version": "0.1.0",
+  "description": "交接鈕：context 用到 70% 時，在 context 旁邊冒出「交接」按鈕，按下去執行該專案的交接流程。",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "threshold": {
+      "type": "string",
+      "title": "出現門檻",
+      "description": "context 用到幾 % 時顯示交接鈕。",
+      "options": ["60", "70", "80"],
+      "default": "70"
+    }
+  }
+}
