@@ -2,6 +2,7 @@
   "name": "claude-mods",
   "owner": { "name": "chamonkey" },
   "plugins": [
-    { "name": "usage-band", "source": "./usage-band", "description": "輸入框上方的細帶：context、五小時額度（台灣時間重置）、本週額度用量，超過八成變紅" }
+    { "name": "usage-band", "source": "./usage-band", "description": "輸入框上方的細帶：context、五小時額度（台灣時間重置）、本週額度用量，超過八成變紅" },
+    { "name": "hourglass", "source": "./hourglass", "description": "沙漏：輸入框上方的圓角框，context、五小時與本週額度的進度條（含重置倒數），以及提示快取的到期倒數" }
   ]
 }

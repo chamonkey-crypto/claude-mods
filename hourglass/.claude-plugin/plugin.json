@@ -1,0 +1,15 @@
+{
+  "name": "hourglass",
+  "version": "0.1.0",
+  "description": "沙漏：在提示框上方顯示 context、5 小時與每週額度，以及提示快取的到期倒數。",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "cacheTtl": {
+      "type": "string",
+      "title": "快取存活時間",
+      "description": "提示快取的 TTL：訂閱方案通常是 1h，API 金鑰預設是 5m。",
+      "options": ["1h", "5m"],
+      "default": "1h"
+    }
+  }
+}
