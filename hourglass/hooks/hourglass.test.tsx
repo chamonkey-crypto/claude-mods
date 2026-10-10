@@ -34,12 +34,20 @@ const cached = {
 }
 
 // 引擎底層的回應：測試要自己答每個會被呼叫的事件
+const dings: unknown[] = []
+
 const world = (on: any, usage: unknown = reading) => {
+  dings.length = 0
   const clock = mock.clock(on, { now: T0 })
   on('session.usage', () => ({ value: usage }))
   on('session.start', (_$: unknown, e: any) => ({ cwd: e.cwd }))
   on('session.measure', (_$: unknown, e: any) => ({ changed: e.changed }))
   on('turn.complete', (_$: unknown, e: any) => ({ text: e.answer, usage: e.usage }))
+  on('turn.start', (_$: unknown, e: any) => ({ turnId: e.turnId }))
+  on('ui.notify', (_$: unknown, e: any) => {
+    dings.push(e.text ?? e)
+    return { value: { isSent: true, channel: 'terminal_bell' } }
+  })
 
   return clock
 }
@@ -164,5 +172,46 @@ describe('hourglass', () => {
 
     expect(text).toContain('10%')
     expect(text).toContain('—')
+  })
+
+  test('工作中畫出進度條，沒有紀錄時只顯示經過時間', async ($, on) => {
+    const clock = world(on)
+
+    await start($)
+    await $.turn.start({ text: 'hi', turnId: 't1' })
+    await clock.advance(5000)
+    const text = await shown(await mount($, { isWorking: true }))
+
+    expect(text).toContain('工作')
+    expect(text).toContain('00:05')
+    expect(text).toContain('還沒有紀錄')
+  })
+
+  test('做完超過 10 秒會叮一聲，下一輪用平均推算剩餘時間', { timeoutMs: 30000 }, async ($, on) => {
+    const clock = world(on)
+
+    await start($)
+    await $.turn.start({ text: 'a', turnId: 't1' })
+    await clock.advance(20000)
+    await finishTurn($, cached)
+    expect(dings).toEqual(['Claude 做完了'])
+
+    // 閒置時沒有進度條
+    expect(await shown(await mount($))).not.toContain('工作')
+
+    await $.turn.start({ text: 'b', turnId: 't2' })
+    await clock.advance(5000)
+    expect(await shown(await mount($, { isWorking: true }))).toContain('預估還約 00:15')
+  })
+
+  test('很快的回覆不叮', async ($, on) => {
+    const clock = world(on)
+
+    await start($)
+    await $.turn.start({ text: 'a', turnId: 't1' })
+    await clock.advance(3000)
+    await finishTurn($, cached)
+
+    expect(dings).toEqual([])
   })
 })

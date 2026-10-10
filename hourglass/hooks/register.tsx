@@ -6,6 +6,13 @@ import type { Usage } from '../types'
 const usage = atom({ plugin: 'hourglass', key: 'usage' } as const, null)
 const cacheAt = atom({ plugin: 'hourglass', key: 'cacheAt' } as const, null)
 const clockNow = atom({ plugin: 'hourglass', key: 'now' } as const, 0)
+const turnStart = atom({ plugin: 'hourglass', key: 'turnStart' } as const, null)
+const turnTimes = atom({ plugin: 'hourglass', key: 'turnTimes' } as const, [])
+
+// 一輪工作超過這麼久，做完才叮一聲（太短的回覆不用吵你）
+const DING_AFTER_MS = 10000
+const KEEP_TURNS = 5
+const WORK_BAR_WIDTH = 20
 
 const BAR_WIDTH = 6
 const BORDER = '#c96442'
@@ -46,8 +53,9 @@ export const register: Register = (on, options) => {
       const now = await $.clock.now()
       const at = await read($, cacheAt)
       const isCountingDown = at !== null && at + ttlMs > now - 1000
+      const isWorking = (await read($, turnStart)) !== null
 
-      if (isCountingDown || now - lastTick >= 30000) {
+      if (isCountingDown || isWorking || now - lastTick >= 30000) {
         lastTick = now
         await update($, clockNow, () => now)
       }
@@ -64,9 +72,31 @@ export const register: Register = (on, options) => {
     return next(e)
   })
 
+  // 一輪開始：記下時間，進度條從這裡起算
+  on('turn.start', async ($, e, next) => {
+    const now = await $.clock.now()
+    await update($, turnStart, () => now)
+    await update($, clockNow, () => now)
+
+    return next(e)
+  })
+
   // 一輪結束：只要最後的回應有讀寫快取，TTL 就從現在重新開始算
   on('turn.complete', async ($, e, next) => {
     const u = e.usage
+    const started = await read($, turnStart)
+
+    if (e.agentId === undefined && started !== null) {
+      const took = (await $.clock.now()) - started
+      await update($, turnStart, () => null)
+
+      if (!e.isAborted) {
+        await update($, turnTimes, list => [...list, took].slice(-KEEP_TURNS))
+        if (took >= DING_AFTER_MS) {
+          await $.ui.notify('Claude 做完了', { title: '沙漏' })
+        }
+      }
+    }
     const isCached = u !== undefined && (u.cache_read_input_tokens > 0 || u.cache_creation_input_tokens > 0)
 
     if (isCached && e.agentId === undefined) {
@@ -89,6 +119,8 @@ export const register: Register = (on, options) => {
     const now = await $.clock.now()
     const used = await read($, usage)
     const at = await read($, cacheAt)
+    const startedAt = await read($, turnStart)
+    const times = await read($, turnTimes)
     const { Box, Text } = $.ui.resolve(e)
 
     const meter = (label: string, percent: number | null | undefined, tail?: string) => {
@@ -159,19 +191,43 @@ export const register: Register = (on, options) => {
         )
     }
 
-    return (
-      <Box
-        borderStyle="round"
-        borderColor={BORDER}
-        paddingX={1}
-        justifyContent="space-between"
-      >
-        <Box gap={2}>
-          {meter('context', used?.percent)}
-          {meter('5 小時', fiveHour?.percentUsed, resetTail)}
-          {meter('本週', sevenDay?.percentUsed)}
+    // 工作進度：已經過的時間，對照最近幾輪的平均推算大約還要多久
+    let work = null
+    if (e.props.isWorking && startedAt !== null) {
+      const elapsed = Math.max(0, (now - startedAt) / 1000)
+      const avg = times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length / 1000 : null
+
+      const ratio = avg !== null && avg > 0 ? Math.min(elapsed / avg, 0.95) : 0
+      const filled = avg === null ? 0 : Math.max(1, Math.round(ratio * WORK_BAR_WIDTH))
+      const over = avg !== null && elapsed > avg
+
+      const estimate =
+        avg === null ? '還沒有紀錄可以推算' : over ? '已超過平常的時間' : `預估還約 ${minutesSeconds(avg - elapsed)}`
+
+      work = (
+        <Box gap={1}>
+          <Text dimColor>工作</Text>
+          <Text>
+            <Text color={over ? 'yellow' : 'cyan'}>{'━'.repeat(filled)}</Text>
+            <Text dimColor>{'━'.repeat(WORK_BAR_WIDTH - filled)}</Text>
+          </Text>
+          <Text bold>{minutesSeconds(elapsed)}</Text>
+          <Text dimColor>{estimate}</Text>
         </Box>
-        {cache}
+      )
+    }
+
+    return (
+      <Box borderStyle="round" borderColor={BORDER} paddingX={1} flexDirection="column">
+        <Box justifyContent="space-between">
+          <Box gap={2}>
+            {meter('context', used?.percent)}
+            {meter('5 小時', fiveHour?.percentUsed, resetTail)}
+            {meter('本週', sevenDay?.percentUsed)}
+          </Box>
+          {cache}
+        </Box>
+        {work}
       </Box>
     )
   })

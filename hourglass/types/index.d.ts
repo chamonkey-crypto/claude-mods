@@ -21,6 +21,10 @@ declare module 'claude-code' {
       cacheAt: number | null
       /** 倒數用的時鐘，每次跳動就重畫橫幅 */
       now: number
+      /** 這一輪開始的時間（毫秒）；沒有進行中的一輪是 null */
+      turnStart: number | null
+      /** 最近幾輪花了多久（毫秒），用來推算預估 */
+      turnTimes: number[]
     }
   }
 }
