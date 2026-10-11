@@ -1,6 +1,6 @@
 {
   "name": "hourglass",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "沙漏：在提示框上方顯示 context、5 小時與每週額度，以及提示快取的到期倒數。",
   "types": "./types/index.d.ts",
   "userConfig": {
