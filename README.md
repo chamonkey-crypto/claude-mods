@@ -28,6 +28,19 @@ context 用到 70% 時，沙漏的 context 旁邊會冒出「交接」按鈕（�
 
 要搭配沙漏用：交接鈕是接在沙漏那條橫幅上。兩個都裝的話，**先裝沙漏、再裝交接鈕**；如果按鈕沒出現，把交接鈕解除安裝再重裝一次。
 
+## edit-radar（撞檔雷達）
+
+同時開好幾個對話時，避免兩個對話改到同一個檔案。
+
+- 每次 Claude 用 Write、Edit、NotebookEdit 改完檔案，就把檔名、時間和這個對話的 ID 記在所有對話共用的資料夾（`~/.claude/edit-radar/`，一個對話一個檔案，各寫各的，不會互相蓋掉）。
+- 每次要改檔案之前，先查過去 30 分鐘有沒有別的對話改過同一個檔案。有的話跳出問題：哪個對話（ID 前 8 碼和它的工作資料夾）、幾分鐘前改的，問你要「繼續」還是「取消」。
+- 選「取消」或把問題關掉，這次就不改，Claude 會停下來等你指示；在「Other」打字的話，你打的話會轉給 Claude。
+- 選「繼續」之後，同一個檔案不會一直問；要等那個對話又改了一次才會再問。
+- 紀錄只留最近 30 分鐘：自己的舊紀錄每次寫入時刪掉；別的對話 30 分鐘沒動的紀錄，在開新對話時清空。
+- 路徑的大小寫和 `\`、`/` 寫法不同也算同一個檔案。
+
+限制：Claude 用 Bash 指令（例如 `sed`、`git checkout`、`npm install`）改到的檔案不會被記錄，也不會被擋。雷達本身出錯時（例如資料夾讀不到）會放行，不會卡住改檔。
+
 ## 安裝（每台電腦一次）
 
 GitHub 上是私人 repository，命令列的 git 權限讀不到，所以用 Fork 把 repository 抓到本機，再讓 Claude Code 讀那個資料夾。
@@ -39,6 +52,7 @@ GitHub 上是私人 repository，命令列的 git 權限讀不到，所以用 Fo
 claude plugin marketplace add "D:/@Development/claude-mods"
 claude plugin install hourglass@claude-mods --scope user
 claude plugin install handoff@claude-mods --scope user
+claude plugin install edit-radar@claude-mods --scope user
 ```
 
 之前裝過 usage-band 的，換成沙漏要多一步：

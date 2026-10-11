@@ -4,6 +4,7 @@
   "plugins": [
     { "name": "usage-band", "source": "./usage-band", "description": "輸入框上方的細帶：context、五小時額度（台灣時間重置）、本週額度用量，超過八成變紅" },
     { "name": "hourglass", "source": "./hourglass", "description": "沙漏：輸入框上方的圓角框，context、五小時與本週額度的進度條（含重置倒數），以及提示快取的到期倒數" },
-    { "name": "handoff", "source": "./handoff", "description": "交接鈕：context 用到 70% 時，在 context 旁邊冒出交接按鈕，按下去執行該專案的交接流程" }
+    { "name": "handoff", "source": "./handoff", "description": "交接鈕：context 用到 70% 時，在 context 旁邊冒出交接按鈕，按下去執行該專案的交接流程" },
+    { "name": "edit-radar", "source": "./edit-radar", "description": "撞檔雷達：要改的檔案三十分鐘內被別的對話改過，先停下來問你要繼續還是取消" }
   ]
 }
