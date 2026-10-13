@@ -2,15 +2,9 @@
 
 自己用的 Claude Code mod。
 
-## usage-band
-
-輸入框上方的一行細帶，顯示 context 用量、五小時額度用量與重置時間（台灣時間）、本週額度用量；超過 80% 的項目變紅。每一輪結束更新一次。
-
 ## hourglass（沙漏）
 
 輸入框上方的圓角框：context、五小時額度（含還剩多久重置）、本週額度各一條進度條，右側是提示快取的到期倒數。用量超過 70% 變黃、90% 變紅；快取剩不到 5 分鐘變黃、不到 1 分鐘變紅，過了顯示「已過期」。
-
-用來取代 usage-band，兩個不要同時裝，不然輸入框上方會有兩條。
 
 快取倒數是推算的：Claude Code 沒有直接給 mod 快取的到期時間，所以用「最後一次有讀寫快取的回應時間」加上存活時間來估。一輪進行中顯示「快取 ⋯」，結束後才重新倒數。存活時間預設 1 小時；用 API 金鑰的話，到 `/config` 把「快取存活時間」改成 5 分鐘。額度欄只有 Pro、Max 訂閱才有，沒有的話顯示「—」。
 
@@ -26,7 +20,7 @@ context 用到 70% 時，沙漏的 context 旁邊會冒出「交接」按鈕（�
 
 出現門檻預設 70%，可在 `/config` 改成 60 或 80。
 
-要搭配沙漏用：交接鈕是接在沙漏那條橫幅上。兩個都裝的話，**先裝沙漏、再裝交接鈕**；如果按鈕沒出現，把交接鈕解除安裝再重裝一次。
+要搭配沙漏用：交接鈕是接在沙漏那條橫幅上。外掛列在前面的在外層，所以交接鈕要排在沙漏前面：**先裝交接鈕、再裝沙漏**（`~/.claude/settings.json` 的 `enabledPlugins` 裡 `handoff` 要寫在 `hourglass` 上面）。順序反了，按鈕會被沙漏蓋住，永遠不出現。
 
 ## edit-radar（撞檔雷達）
 
@@ -50,15 +44,9 @@ GitHub 上是私人 repository，命令列的 git 權限讀不到，所以用 Fo
 
 ```bash
 claude plugin marketplace add "D:/@Development/claude-mods"
-claude plugin install hourglass@claude-mods --scope user
 claude plugin install handoff@claude-mods --scope user
+claude plugin install hourglass@claude-mods --scope user
 claude plugin install edit-radar@claude-mods --scope user
-```
-
-之前裝過 usage-band 的，換成沙漏要多一步：
-
-```bash
-claude plugin uninstall usage-band@claude-mods --scope user
 ```
 
 3. 開新的工作階段，輸入框上方就會出現橫幅（桌面 app 和終端機都有）。

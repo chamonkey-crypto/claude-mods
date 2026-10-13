@@ -35,7 +35,10 @@ const world = (
     return {}
   })
   on('fs.exists', (_$: unknown, e: any) => ({
-    value: (opts.files ?? []).some(f => e.path === f || e.path.endsWith('/' + f)),
+    value: (opts.files ?? []).some(f => {
+      const path = String(e.path).replace(/\\/g, '/')
+      return path === f || path.endsWith('/' + f)
+    }),
   }))
   on('prompt.submit', (_$: unknown, e: any) => {
     submitted.push(e.text)

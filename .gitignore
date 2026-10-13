@@ -1,6 +1,5 @@
 node_modules/
 .claude-plugin/types/
-usage-band/.claude-plugin/types/
 hourglass/.claude-plugin/types/
 handoff/.claude-plugin/types/
 edit-radar/.claude-plugin/types/
